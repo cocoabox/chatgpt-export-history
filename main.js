@@ -30,11 +30,13 @@
 
             let button_container = document.createElement('ul');
             button_container.style.cssText = ` list-style: none; padding: 0; margin: 0; `;
-
+            let dismissed = false;
             function dismiss() {
+                if (dismissed) return;
                 modal.remove();
                 overlay.remove();
                 resolve(); 
+                dismissed = true;
             }
             const common_button_css = `padding: 10px 20px; border: none; border-radius: 2em; color: white; cursor: pointer; font-size: 16px; margin: 10px 0;`
             for (const action of actions) {
@@ -42,7 +44,7 @@
                 action_button.innerText = action.caption;
                 action_button.style.cssText = `${common_button_css}; background-color: #007BFF;`
                 action_button.onclick = () => {
-                    action.callback();
+                    action.callback({dismiss});
                     if (action.dismiss) {
                         dismiss();
                     }
@@ -79,7 +81,8 @@
     }
 
     function chat2html(chat, title) {
-        const html = `<!DOCTYPE html><html><head><title>${title}</title></head><body><dl>` +
+        const css = `body,pre{font-family:helvetica,arial,san-serif}body{padding:1em;background:#303030;color:#fff;font-size:14pt;line-height:1.8em}dt{color:rgba(255,255,255,.5);font-weight:700}`;
+        const html = `<!DOCTYPE html><html><head><style type="text/css">${css}</style><title>${title}</title></head><body><dl>` +
             chat.map(({from, from_user, from_bot, body}) => {
                 let dt = '';
                 let dd = '';
@@ -150,19 +153,24 @@
         });
     }
 
-    async function wait_for_element(query_from, selector, {timeout=1000}={}) {
+    async function wait_for_element(query_from, selector, {timeout=1000, interval=500}={}) {
         console.log(`waiting for "${selector}" from"`, query_from);
-        let selected;
-        selected = query_from.querySelector(selector);
-        if (selected) {
-            return selected;
-        }
-        else {
-            await sleep(timeout);
+        let timed_out = false;
+        let timer = setTimeout(() => {
+            console.warn('timed out');
+            timed_out = true;
+        }, timeout);
+        while (true) {
+            let selected;
             selected = query_from.querySelector(selector);
-            if (selected) return selected;
+            if (selected) {
+                clearTimeout(timer);
+                console.log(`got "${selector}" from`, query_from, '-->', selected);
+                return selected;
+            }
+            await sleep(interval);
+            if (timed_out) throw new Error('timed out');
         }
-        throw {timeout:true, query_from, selector};    
     }
     async function download_image(image_url) {
         const response = await fetch(image_url);
@@ -205,25 +213,24 @@
         return document.querySelector(`a[href="${href}"]`);
     }
     async function reload_chat() {
-
         const button_to_return = find_current_chat_btn();
         if (! button_to_return) {
             console.warn('cannot reload because return-button not found');
             return;
         }
-        console.log("going to main");
         const main_button = document.querySelector('a[href="/"]');
         if (! main_button) {
             console.warn('cannot reload because main-button not found');
             return;
         }
+        console.log('main', main_button);
         main_button.click();
         await sleep(RELOAD_WAIT_MSEC);
-        await wait_for_element(document.body, '.composer-parent #prompt-textarea');
-        console.log("going back by clicking", button_to_return);
+        await wait_for_element(document.body, '.composer-parent #prompt-textarea', {timeout: 30 * 1000});
+        console.log('return', button_to_return);
         button_to_return.click();
         await sleep(RELOAD_WAIT_MSEC);
-        await wait_for_element(document.body, 'main .h-full article', {timeout:5000});
+        await wait_for_element(document.body, 'main .h-full svg[role="img"]', {timeout:30 * 1000});
     }
 
     async function save_chat() {
@@ -354,11 +361,9 @@
 
                 await msgbox(msg,{actions:[
                     has_img_errs ? {
-                        dismiss:true,
-                        caption: 'Reload and Try Again',
-                        callback: () => { 
-                            console.log("will retry");
-                            return resolve('retry'); 
+                        caption: 'Reload and Try Again', callback: ({dismiss}) => { 
+                            resolve('retry'); 
+                            dismiss();
                         }}:null,
                     {caption:'Save as HTML', callback: async () => {
                         console.log(html);
@@ -378,9 +383,11 @@
 
     // main
     while (true) {
+        await reload_chat();
         const res = await save_chat_wrapper();
         if (res === 'retry') {
             console.log("will retry");
+            await sleep(500);
             await reload_chat();
             continue;
         }
