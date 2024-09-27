@@ -81,8 +81,8 @@
     }
 
     function chat2html(chat, title) {
-        const css = `body,pre{font-family:helvetica,arial,san-serif}body{padding:1em;background:#303030;color:#fff;font-size:14pt;line-height:1.8em}dt{color:rgba(255,255,255,.5);font-weight:700}`;
-        const html = `<!DOCTYPE html><html><head><style type="text/css">${css}</style><title>${title}</title></head><body><dl>` +
+        const css = `body,pre{font-family:helvetica,arial,san-serif}body{padding:1em;background:#303030;color:#fff;font-size:14pt;line-height:1.8em}dt{color:rgba(255,255,255,.5);font-weight:700}img{ max-width: 100%; height: auto; display: block;}dd > ul { list-style: none; margin: 0; padding :0; } dd > ul > li{ margin: 0; padding :0; }`;
+        const html = `<!DOCTYPE html><html><head><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /><style type="text/css">${css}</style><title>${title}</title></head><body><dl>` +
             chat.map(({from, from_user, from_bot, body}) => {
                 let dt = '';
                 let dd = '';
