@@ -1,10 +1,23 @@
+# chatgpt-export-history
+
 ![](imgs/example.jpg)
 
-Download ChatGPT chat history into JSON or HTML file with images.
+Bookmarklet to download ChatGPT chat history into JSON or HTML file with images.
 
 - Saves user-provided images as base64 chunks
 - Retains ChatGPT markdown response
-- Downloading of DallE images might need page-reloading
+- Downloading of some images might need page-reloading to due their CDN issuing time-sensitive URL signature
+  ![](imgs/bookmark.jpg)
 
-To use, copy the content of [bookmarklet.js](build/bookmarklet.js) and paste it to the URL box of a new bookmark.
+To get started, copy the content of [bookmarklet.js](build/bookmarklet.js) and paste it to the URL box of a new bookmark.
+
+## building
+
+1. edit main.js
+
+2. run 
+
+    ```
+    npm run build
+    ```
 
