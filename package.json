@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "esbuild": "0.24.0"
+  },
+  "scripts":{
+          "build": "esbuild main.js --bundle --minify --outfile=build/bookmarklet.js --banner:js=javascript: --format=iife"
+  }
+}
