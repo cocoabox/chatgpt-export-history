@@ -89,13 +89,15 @@
                 if (from_user) {
                     dt = from;
                     if (body.length === 1) {
-                        if (typeof body[0] === 'string') { dd = `<pre>${body[0]}</pre>`; }
+                        const tag = 'p';
+                        if (typeof body[0] === 'string') { dd = `<${tag}>${body[0]}</${tag}>`; }
                         else if (body[0]?.mimeType?.startsWith('image/')) { dd= `<img src="${body[0].data}" />`; }
                         else { dd = 'unknown'; }
                     }
                     else if (body.length > 1) {
                         const list = body.map(b => {
-                            if (typeof b === 'string') { return `<li><pre>${b}</pre></li>`; }
+                            const tag = 'p';
+                            if (typeof b === 'string') { return `<li><${tag}>${b}</${tag}></li>`; }
                             else if (b?.mimeType.startsWith('image/')) { return `<li><img src="${b.data}" /></li>`; }
                             else { return '<li>unknown</li>'; }
                         });
