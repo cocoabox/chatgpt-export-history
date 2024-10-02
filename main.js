@@ -82,7 +82,7 @@
 
     function chat2html(chat, title) {
         const css = `body,pre{font-family:helvetica,arial,san-serif}body{padding:1em;background:#303030;color:#fff;font-size:14pt;line-height:1.8em}dt{color:rgba(255,255,255,.5);font-weight:700}img{ max-width: 100%; height: auto; display: block;}dd > ul { list-style: none; margin: 0; padding :0; } dd > ul > li{ margin: 0; padding :0; }`;
-        const html = `<!DOCTYPE html><html><head><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /><style type="text/css">${css}</style><title>${title}</title></head><body><dl>` +
+        const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /><style type="text/css">${css}</style><title>${title}</title></head><body><dl>` +
             chat.map(({from, from_user, from_bot, body}) => {
                 let dt = '';
                 let dd = '';
@@ -190,22 +190,27 @@
     }
     async function get_image_data(img_tag) {
         return new Promise((resolve, reject) => {
-            // Ensure the img_tag is a valid HTMLImageElement
-            if (!(img_tag instanceof HTMLImageElement)) {
-                return reject(new Error('Invalid image tag'));
+            try{ 
+                // Ensure the img_tag is a valid HTMLImageElement
+                if (!(img_tag instanceof HTMLImageElement)) {
+                    return reject(new Error('Invalid image tag'));
+                }
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = img_tag.width;
+                canvas.height = img_tag.height;
+                context.drawImage(img_tag, 0, 0);
+                const dataUrl = canvas.toDataURL();
+                const mimeType = dataUrl.split(';')[0].split(':')[1];
+                return resolve({
+                    data: dataUrl.split(',')[1], // Base64 data
+                    mimeType: mimeType
+                });
             }
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = img_tag.width;
-            canvas.height = img_tag.height;
-            context.drawImage(img_tag, 0, 0);
-            const dataUrl = canvas.toDataURL();
-            const mimeType = dataUrl.split(';')[0].split(':')[1];
-            // Resolve with the base64 data and MIME type
-            resolve({
-                data: dataUrl.split(',')[1], // Base64 data
-                mimeType: mimeType
-            });
+            catch(error) {
+                console.warn('get_image_data failed', {img_tag, error});
+                return reject({error});
+            }
         });
     }
     function find_current_chat_btn() {
@@ -248,7 +253,7 @@
         let img_errs = [];
         let uncaught_errs = 0;
         for (const [idx, article] of Object.entries(articles_arr)) {
-            console.log(`message : ${idx}/${tot}`, article);
+            console.log(`** message : ${idx}/${tot}`, article);
             await scroll_into_view(article);
             try {
                 const msg = {
@@ -385,7 +390,7 @@
 
     // main
     while (true) {
-        await reload_chat();
+        // await reload_chat();
         const res = await save_chat_wrapper();
         if (res === 'retry') {
             console.log("will retry");
