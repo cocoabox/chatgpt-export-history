@@ -81,7 +81,7 @@
     }
 
     function chat2html(chat, title) {
-        const css = `body,pre{font-family:helvetica,arial,san-serif}body{padding:1em;background:#303030;color:#fff;font-size:14pt;line-height:1.8em}dt{color:rgba(255,255,255,.5);font-weight:700}img{ max-width: 100%; height: auto; display: block;}dd > ul { list-style: none; margin: 0; padding :0; } dd > ul > li{ margin: 0; padding :0; }`;
+        const css = `body,pre{font-family:helvetica,arial,san-serif}body{padding:1em;background:#303030;color:#fff;font-size:14pt;line-height:1.8em}dt{color:rgba(255,255,255,.5);font-weight:700}img{ max-width: 100%; height: auto; display: block;}pre.user{white-space:pre-wrap;}dd>ul{list-style: none; margin: 0; padding :0;}dd>ul>li{ margin: 0; padding :0; }`;
         const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /><style type="text/css">${css}</style><title>${title}</title></head><body><dl>` +
             chat.map(({from, from_user, from_bot, body}) => {
                 let dt = '';
@@ -89,15 +89,15 @@
                 if (from_user) {
                     dt = from;
                     if (body.length === 1) {
-                        const tag = 'p';
-                        if (typeof body[0] === 'string') { dd = `<${tag}>${body[0]}</${tag}>`; }
+                        const tag = 'pre';
+                        if (typeof body[0] === 'string') { dd = `<${tag} class="user">${body[0]}</${tag}>`; }
                         else if (body[0]?.mimeType?.startsWith('image/')) { dd= `<img src="${body[0].data}" />`; }
                         else { dd = 'unknown'; }
                     }
                     else if (body.length > 1) {
                         const list = body.map(b => {
-                            const tag = 'p';
-                            if (typeof b === 'string') { return `<li><${tag}>${b}</${tag}></li>`; }
+                            const tag = 'pre';
+                            if (typeof b === 'string') { return `<li><${tag} class="user">${b}</${tag}></li>`; }
                             else if (b?.mimeType.startsWith('image/')) { return `<li><img src="${b.data}" /></li>`; }
                             else { return '<li>unknown</li>'; }
                         });
